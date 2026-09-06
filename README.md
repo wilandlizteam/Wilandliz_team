@@ -37,11 +37,21 @@ whole flow locally.
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Vite dev server |
-| `npm run build` | Type-check, then production build to `dist/` |
-| `npm run typecheck` | Types only |
-| `npm run lint` | Lint `src/` and `api/` |
-| `node qa/funnel.qa.mjs` | Full funnel test at three screen sizes (82 assertions) |
+| `npm run build` | Preflight check, type-check, then production build to `dist/` |
+| `npm run typecheck` | Frontend types only |
+| `npm run typecheck:server` | Serverless function types (not part of the build) |
+| `npm run lint` | Lint `src/` |
+| `npm run qa` | Build, then the full funnel test suite (142 assertions) |
 | `node scripts/build-preview.mjs` | Single-file `preview.html` for review/email |
+
+The QA suite drives a real browser. Playwright is deliberately **not** a
+dependency — it would add ~150MB to every deploy for a tool the server never
+runs. Install it once when you want to run the tests:
+
+```bash
+npm i --no-save playwright && npx playwright install chromium
+npm run qa
+```
 
 ---
 
@@ -72,6 +82,41 @@ bundled into the browser code — the QA suite asserts this on every run.
 `netlify/functions/lead.ts`. Set the same environment variables under
 **Site settings → Environment variables**.
 
+### If the deploy fails
+
+**`TS18003: No inputs were found in config file`** — or the build stops with
+`BUILD STOPPED — source files are missing from this checkout`.
+
+Neither is a code problem. Both mean the deployed checkout is missing folders:
+the root files (`package.json`, `tsconfig.json`) arrived but `src/`, `api/` or
+`public/` did not. The usual causes are GitHub's drag-and-drop web uploader,
+which does not reliably carry nested folders, and pushing from the wrong
+directory.
+
+Check what the repository actually contains:
+
+```bash
+git ls-files | head -40      # expect ~40 files including src/ and api/
+git check-ignore -v src      # prints a rule only if something ignores src/
+```
+
+A healthy repo lists 40 files. If `src/` is absent, push from the project root
+(the folder containing `package.json`) with the command line rather than the
+web uploader:
+
+```bash
+cd wilandliz-seller-funnel
+git init && git add -A
+git commit -m "Wil & Liz seller funnel"
+git branch -M main
+git remote add origin https://github.com/<you>/<repo>.git
+git push -u origin main
+```
+
+Also confirm Vercel's **Settings → General → Root Directory** is empty (or set
+to the folder containing `package.json`, if you committed the project inside a
+subfolder).
+
 ---
 
 ## How the pieces fit
@@ -95,7 +140,14 @@ api/
   lead.ts                ← Vercel entry point
   _lib/lead-core.ts      ← validation + Follow Up Boss call (the ONLY place the key is read)
 netlify/functions/lead.ts← Netlify entry point, same core
+scripts/preflight.mjs    ← fails the build with a readable message if files are missing
 ```
+
+**Build configuration.** One `tsconfig.json` covers everything the site build
+compiles. The serverless functions are type-checked separately via
+`tsconfig.server.json` and `npm run typecheck:server` — they are compiled by the
+host at deploy time, not by `vite build`, so keeping them out of the site build
+means a problem with them can never take the landing page down.
 
 ### Meta Pixel
 
@@ -156,19 +208,51 @@ Almost everything an editor touches is in `src/config.ts`:
 - `DISCLAIMER` — team name, affiliation, licensees, and two empty slots for
   brokerage legal name / DRE and any extra required language
 - `META_PIXEL_ID`
-- `HERO_BACKGROUND` — the two sizes of the hero photograph, or `null` for a
+- `HERO_BACKGROUND` — the two sizes of the step 1 photograph, or `null` for a
   clean white hero
+- `PAGE2_BACKGROUND` — the two sizes of the step 2 interior photograph
 
 Swapping the hero photo: export at 1536px and 860px wide as `.webp`, drop both
 into `public/`, update `HERO_BACKGROUND`, and update the two `<link rel=preload>`
-tags near the top of `index.html` to match.
+tags near the top of `index.html` to match. The step 2 photo is the same but at
+1760px and 900px, and should be landscape — phones show it at a 4:3 crop.
+
+### The two steps are deliberately different
+
+**Step 1** is the cinematic hero: the exterior photograph runs full bleed, a
+single frosted glass card carries the eyebrow, headline, subtitle and address
+field, and Wil and Liz stand at the right.
+
+**Step 2** is the interior. No portrait, no masthead — the dining-room
+photograph fills the frame and the official logo in the upper right is the only
+branding. On desktop the glass form panel sits left, over the kitchen doorway,
+so the table, pendant and window stay clear. On phones and small tablets the
+room runs as a full-width 4:3 band at the top with the form rising over its
+lower edge, which keeps the whole room legible instead of cropping it to a
+sliver.
+
+The glass is `backdrop-filter` layered over a mostly opaque white tint, so where
+the filter is unsupported the panel is simply a solid card and nothing about
+readability depends on the blur.
 
 ### About the photographs
 
 `src/assets/wil-and-liz.webp` is Wil and Liz's own photograph with the white
 studio backdrop and its floor shadow made transparent, so they stand in the
 scene instead of sitting in a box. Their faces, bodies, clothing and proportions
-are untouched, and the image is never stretched or cropped.
+are untouched, and the image is never stretched or cropped. It appears on
+step 1 only.
+
+`public/dining-room.webp` is the supplied interior photograph, resampled up,
+unsharp-masked and given a small exposure/contrast/saturation lift — a
+presentation pass only. Nothing in the room was added, removed, moved or
+re-composed.
+
+`src/assets/logo-legacy-built.png` is the official mark, unmodified: no
+recolouring, no redrawing, no added effects. Only the flat white surround was
+made transparent so it can sit on the brand plate. It is sized by width alone in
+CSS, so it can never be stretched — the QA suite asserts the rendered aspect
+ratio matches the file's.
 
 ---
 
@@ -195,6 +279,14 @@ selected · CRM failure shows an error and fires no Lead · retry allowed · Lea
 fires once on success with an `eventID` · double-click sends one lead · payload
 complete · UTM and fbclid preserved · retry reuses one submission id · refresh
 does not re-fire Lead · no console errors.
+
+Design and content assertions, also at each size: every line of copy on all
+three screens matches the approved wording character for character · the
+portrait appears on step 1 and nowhere else · step 2 uses the dining-room
+photograph · the official logo is present in the upper right with real spacing
+from both edges · the logo's rendered aspect ratio matches the source file, so
+it cannot have been stretched · the logo is between 60 and 130px wide · the logo
+does not overlap the form panel · the masthead gives way to the logo on step 2.
 
 Plus, once: 44px minimum tap targets, 16px minimum input font (stops iOS
 zooming), no CRM credentials or CRM hostname anywhere in the client bundle.

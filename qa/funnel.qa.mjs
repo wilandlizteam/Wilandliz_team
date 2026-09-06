@@ -106,6 +106,34 @@ for (const vp of VIEWPORTS) {
     `doc ${overflow.doc} / body ${overflow.body} vs win ${overflow.win}`,
   );
 
+  // 2b. Step 1 copy verbatim, and the portrait belongs here
+  const copy1 = await page.evaluate(() => ({
+    h1: document.querySelector('h1')?.textContent,
+    sub: document.querySelector('.subtitle')?.textContent,
+    label: document.querySelector('label[for=property-address]')?.textContent,
+    ph: document.querySelector('#property-address')?.getAttribute('placeholder'),
+    cta: document.querySelector('button[type=submit]')?.textContent,
+    portraits: [...document.querySelectorAll('img')].filter((i) =>
+      /wil-and-liz/.test(i.currentSrc || i.src),
+    ).length,
+    glass: !!document.querySelector('.hero__copy.glass'),
+  }));
+  check(`${tag} step 1 headline verbatim`, copy1.h1 === 'Sell Your Home for Top Dollar', copy1.h1);
+  check(
+    `${tag} step 1 subtitle verbatim`,
+    copy1.sub === "With 75+ years of combined experience, we'll help you sell faster and for top dollar. ⭐",
+    copy1.sub,
+  );
+  check(
+    `${tag} address question verbatim`,
+    copy1.label === "What's the address of the home you're thinking about selling?",
+    copy1.label,
+  );
+  check(`${tag} address placeholder verbatim`, copy1.ph === 'Enter your property address', copy1.ph);
+  check(`${tag} step 1 CTA is GET STARTED`, copy1.cta === 'GET STARTED', copy1.cta);
+  check(`${tag} portrait IS shown on step 1`, copy1.portraits === 1, `${copy1.portraits} found`);
+  check(`${tag} step 1 uses the glass card`, copy1.glass);
+
   // 3. Empty address is rejected
   await page.click('button[type=submit]');
   check(
@@ -137,6 +165,88 @@ for (const vp of VIEWPORTS) {
     overflow2.doc <= overflow2.win + 1 && overflow2.body <= overflow2.win + 1,
     `doc ${overflow2.doc} / body ${overflow2.body} vs win ${overflow2.win}`,
   );
+
+  // 4c. Step 2 is a different composition: no portrait, logo instead.
+  // Wait for the logo bitmap to decode, and settle the smooth scroll, so the
+  // measurements below are of the real laid-out page.
+  await page.waitForFunction(() => {
+    const i = document.querySelector('.brand-plate img');
+    return i && i.complete && i.naturalWidth > 0;
+  });
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await page.waitForTimeout(150);
+
+  const stage = await page.evaluate(() => {
+    const portraits = [...document.querySelectorAll('img')].filter((i) =>
+      /wil-and-liz/.test(i.currentSrc || i.src),
+    );
+    const logoEl = document.querySelector('.brand-plate img');
+    const bgEl = document.querySelector('.stage__bg');
+    const plate = document.querySelector('.brand-plate')?.getBoundingClientRect();
+    const panel = document.querySelector('.stage__panel')?.getBoundingClientRect();
+    const sect = document.querySelector('.stage')?.getBoundingClientRect();
+    // True rectangle intersection — overlap needs BOTH axes to overlap.
+    const overlaps =
+      plate && panel
+        ? !(
+            plate.right <= panel.left ||
+            plate.left >= panel.right ||
+            plate.bottom <= panel.top ||
+            plate.top >= panel.bottom
+          )
+        : true;
+    return {
+      portraits: portraits.length,
+      logoSrc: logoEl?.currentSrc || logoEl?.src || '',
+      logoNatural: logoEl ? logoEl.naturalWidth / logoEl.naturalHeight : 0,
+      logoRendered: logoEl
+        ? logoEl.getBoundingClientRect().width / logoEl.getBoundingClientRect().height
+        : 0,
+      logoWidth: logoEl ? logoEl.getBoundingClientRect().width : 0,
+      bg: bgEl ? getComputedStyle(bgEl).backgroundImage : '',
+      masthead: !!document.querySelector('.masthead'),
+      // Inset from the top-right corner of the step-2 section itself, which is
+      // what "upper-right with comfortable spacing" actually means.
+      plateRight: plate && sect ? sect.right - plate.right : -1,
+      plateTop: plate && sect ? plate.top - sect.top : -1,
+      collides: overlaps,
+    };
+  });
+
+  check(`${tag} portrait is NOT shown on step 2`, stage.portraits === 0, `${stage.portraits} found`);
+  check(`${tag} step 2 uses the dining-room photo`, /dining-room/.test(stage.bg), stage.bg.slice(0, 80));
+  check(`${tag} official logo present, upper right`, /logo-legacy-built/.test(stage.logoSrc) && stage.plateTop >= 8 && stage.plateRight >= 8, JSON.stringify(stage));
+  check(
+    `${tag} logo is not distorted`,
+    Math.abs(stage.logoNatural - stage.logoRendered) < 0.02,
+    `natural ${stage.logoNatural.toFixed(3)} vs rendered ${stage.logoRendered.toFixed(3)}`,
+  );
+  check(
+    `${tag} logo is small but visible (${Math.round(stage.logoWidth)}px)`,
+    stage.logoWidth >= 60 && stage.logoWidth <= 130,
+  );
+  check(`${tag} logo does not overlap the form panel`, !stage.collides);
+  check(`${tag} masthead gives way to the logo on step 2`, stage.masthead === false);
+
+  // 4d. Exact copy, verbatim
+  const copy2 = await page.evaluate(() => ({
+    h1: document.querySelector('h1')?.textContent,
+    q: [...document.querySelectorAll('legend')].map((l) => l.textContent),
+    opts: [...document.querySelectorAll('.choice span')].map((s) => s.textContent),
+    cta: document.querySelector('form button[type=submit]')?.textContent,
+  }));
+  check(`${tag} step 2 headline verbatim`, copy2.h1 === "Let's Get Your Home Sold.", copy2.h1);
+  check(
+    `${tag} timeline question verbatim`,
+    copy2.q.includes('How soon are you looking to sell your home?'),
+    JSON.stringify(copy2.q),
+  );
+  check(
+    `${tag} timeline options verbatim`,
+    JSON.stringify(copy2.opts) === JSON.stringify(['0–3 months', '3–6 months', '6–12 months']),
+    JSON.stringify(copy2.opts),
+  );
+  check(`${tag} final CTA is GET MY HOME VALUE`, copy2.cta === 'GET MY HOME VALUE', copy2.cta);
 
   // 5. Address carried forward
   const recalled = await page.locator('.recall__value').textContent();
@@ -226,6 +336,19 @@ for (const vp of VIEWPORTS) {
   check(
     `${tag} retry reuses one submissionId`,
     leadPosts[0].submissionId === leadPosts[1].submissionId,
+  );
+
+  // 12b. Success copy verbatim
+  const succ = await page.evaluate(() => ({
+    h1: document.querySelector('.success h1')?.textContent,
+    p: document.querySelector('.success p')?.textContent,
+  }));
+  check(`${tag} success headline verbatim`, succ.h1 === "You're All Set! 🏡", succ.h1);
+  check(
+    `${tag} success body verbatim`,
+    succ.p ===
+      'Thanks for reaching out. Wil & Liz Team will be in touch shortly to discuss your home and your selling goals.',
+    succ.p,
   );
 
   // 13. Refresh on success must not re-fire Lead

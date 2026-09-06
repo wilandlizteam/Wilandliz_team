@@ -77,6 +77,22 @@ export const HERO_BACKGROUND: { large: string; small: string } | null = {
 
 /**
  * ---------------------------------------------------------------------------
+ * STEP 2 BACKGROUND — THE INTERIOR
+ * ---------------------------------------------------------------------------
+ * The dining-room photograph. Swap the same way as HERO_BACKGROUND: export at
+ * 1760px and 900px wide as .webp into /public and update the paths here.
+ *
+ * Step 2 shows the room at its natural 3:2 proportions on phones, so choose a
+ * landscape photograph — a portrait crop will letterbox.
+ * ---------------------------------------------------------------------------
+ */
+export const PAGE2_BACKGROUND = {
+  large: '/dining-room.webp',
+  small: '/dining-room-sm.webp',
+} as const;
+
+/**
+ * ---------------------------------------------------------------------------
  * BROKERAGE / LICENSING DISCLAIMER
  * ---------------------------------------------------------------------------
  * Edit the strings below. Nothing here is auto-generated.

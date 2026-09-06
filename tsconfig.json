@@ -1,21 +1,48 @@
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tsconfig.api.json"
-    }
-  ],
+  /*
+   * Single tsconfig for everything the site build compiles.
+   *
+   * This deliberately replaces the multi-file "project references" setup
+   * (tsconfig.app / tsconfig.node / tsconfig.api). That arrangement made the
+   * production build depend on three directories existing, and if any one of
+   * them was missing the build died with a cryptic TS18003 instead of a useful
+   * message. The serverless functions under api/ are compiled by the host
+   * (Vercel's Node builder), not by `vite build`, so they do not belong in the
+   * critical path of the site build — they are type-checked separately via
+   * `npm run typecheck:server`.
+   */
   "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "types": ["vite/client", "node"],
+
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "allowArbitraryExtensions": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "erasableSyntaxOnly": true,
+
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
-  }
+  },
+  /*
+   * Globs rather than bare directory names. A bare "src" fails the whole
+   * compile if the directory is absent; a glob that matches nothing is a
+   * softer failure, and scripts/preflight.mjs catches the real problem first
+   * with a message a human can act on.
+   */
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "vite.config.ts"]
 }

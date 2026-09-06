@@ -33,6 +33,20 @@
 
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --radius: 6px;
+
+  /*
+    Glass surfaces. Kept deliberately dense — a premium frosted panel, not a
+    transparent futuristic pane. The blur is small and the tint is mostly
+    opaque so text on top stays as readable as it would be on white.
+  */
+  --glass-bg: rgb(255 255 255 / 0.78);
+  --glass-bg-solid: rgb(255 255 255 / 0.92);
+  --glass-border: rgb(255 255 255 / 0.7);
+  --glass-blur: blur(20px) saturate(1.12);
+  --glass-shadow:
+    0 28px 64px -28px rgb(11 31 58 / 0.4),
+    0 4px 14px -6px rgb(11 31 58 / 0.12);
+  --glass-radius: 14px;
 }
 
 @layer base {
@@ -206,11 +220,10 @@
 .hero__scrim {
   background: linear-gradient(
     to bottom,
-    rgb(255 255 255 / 0.97) 0%,
-    rgb(255 255 255 / 0.95) 48%,
-    rgb(255 255 255 / 0.78) 66%,
-    rgb(255 255 255 / 0.28) 88%,
-    rgb(255 255 255 / 0.12) 100%
+    rgb(255 255 255 / 0.62) 0%,
+    rgb(255 255 255 / 0.5) 45%,
+    rgb(255 255 255 / 0.26) 72%,
+    rgb(255 255 255 / 0.1) 100%
   );
 }
 
@@ -218,11 +231,11 @@
   .hero__scrim {
     background: linear-gradient(
       100deg,
-      rgb(255 255 255 / 0.98) 0%,
-      rgb(255 255 255 / 0.96) 38%,
-      rgb(255 255 255 / 0.8) 52%,
-      rgb(255 255 255 / 0.34) 72%,
-      rgb(255 255 255 / 0.18) 100%
+      rgb(255 255 255 / 0.7) 0%,
+      rgb(255 255 255 / 0.52) 34%,
+      rgb(255 255 255 / 0.26) 55%,
+      rgb(255 255 255 / 0.1) 78%,
+      rgb(255 255 255 / 0.06) 100%
     );
   }
 }
@@ -260,9 +273,51 @@
   }
 }
 
+/* ------------------------------------------------------------ glass panel */
+
+/*
+  One shared surface for both steps. backdrop-filter is a progressive
+  enhancement: where it is unsupported the tint alone still gives a solid,
+  readable card, so nothing depends on the blur landing.
+*/
+.glass {
+  position: relative;
+  background: var(--glass-bg-solid);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+@supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
+  .glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+}
+
+/* A hairline of light along the top edge — how real glass catches a highlight.
+   One pseudo-element, no glow, no gradient wash. */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: var(--glass-radius) var(--glass-radius) 0 0;
+  background: linear-gradient(
+    to right,
+    rgb(255 255 255 / 0),
+    rgb(255 255 255 / 0.95) 22%,
+    rgb(255 255 255 / 0.95) 78%,
+    rgb(255 255 255 / 0)
+  );
+  pointer-events: none;
+}
+
 .hero__copy {
-  padding-bottom: clamp(1.5rem, 4vw, 3.5rem);
-  max-width: 34rem;
+  max-width: 35rem;
+  padding: clamp(1.6rem, 4.5vw, 2.75rem);
+  margin-bottom: clamp(1.75rem, 5vw, 3rem);
 }
 
 @media (min-width: 900px) {
@@ -270,8 +325,13 @@
     /* Optically centred against the portrait, biased up so the CTA stays
        comfortably above the fold on a 13" laptop. */
     align-self: center;
-    padding-block: 0 clamp(2rem, 4vw, 3rem);
+    margin-block: clamp(1rem, 3vw, 2rem) clamp(2rem, 5vw, 3.25rem);
   }
+}
+
+/* On the card, muted text needs a touch more weight to hold contrast. */
+.hero__copy .form-footnote {
+  color: #5a6472;
 }
 
 .eyebrow {
@@ -292,6 +352,17 @@
   height: 1px;
   background: var(--blue);
   flex: none;
+}
+
+/* Keeps it on one line inside the glass card on small phones. */
+@media (max-width: 559px) {
+  .eyebrow {
+    font-size: 0.64rem;
+    letter-spacing: 0.13em;
+  }
+  .eyebrow::before {
+    width: 20px;
+  }
 }
 
 h1.headline {
@@ -387,7 +458,7 @@ h1.headline {
 
 .hero__credit {
   position: absolute;
-  left: 0;
+  right: 0;
   bottom: 1.35rem;
   background: var(--white);
   border-left: 3px solid var(--blue);
@@ -536,54 +607,145 @@ h1.headline {
   }
 }
 
-/* ----------------------------------------------------------- step 2 layout */
+/* ===========================================================================
+   STEP 2 — THE INTERIOR
+   A deliberately different composition from the hero: no portrait, no
+   masthead, no two-column split. The room photograph carries the page and the
+   logo is the only branding.
 
-.step-two {
-  padding-block: clamp(2rem, 6vw, 3.75rem);
+   Phone   — the photograph runs full width at its own 3:2 proportions, so the
+             room is never cropped into something unrecognisable, and the glass
+             form rises over its lower edge.
+   Desktop — the photograph fills the section; the form sits left, over the
+             kitchen doorway, leaving the table, pendant and window clear.
+   =========================================================================== */
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  background: #f6f8fb;
 }
 
-/* The portrait only appears where there is genuinely room for it. */
-.step-two__aside {
-  display: none;
+.stage__bg {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  /* Phone: a gentle 4:3 crop of the landscape photo — tall enough to feel
+     like a room you have walked into, shallow enough that the table, window
+     and full depth of the space all stay in frame. */
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  background-image: var(--stage-bg-sm);
+  background-size: cover;
+  background-position: 50% 58%;
 }
 
-@media (min-width: 1060px) {
-  .step-two {
-    display: grid;
-    grid-template-columns: minmax(0, 32rem) minmax(0, 1fr);
-    gap: clamp(2rem, 5vw, 4rem);
-    align-items: end;
-    padding-bottom: 0;
+.stage__scrim {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  pointer-events: none;
+  /* Barely-there navy, only enough to seat the logo and settle the highlights. */
+  background: linear-gradient(
+    to bottom,
+    rgb(11 31 58 / 0.22) 0%,
+    rgb(11 31 58 / 0.06) 42%,
+    rgb(11 31 58 / 0.02) 100%
+  );
+}
+
+.stage__inner {
+  position: relative;
+  z-index: 2;
+  /* Pulls the form up so it overlaps the bottom edge of the photograph. */
+  padding-block: min(58vw, 19rem) clamp(2.5rem, 8vw, 4rem);
+}
+
+/* ------------------------------------------------------------- logo plate */
+
+.brand-plate {
+  position: absolute;
+  z-index: 3;
+  top: clamp(0.85rem, 3.5vw, 1.75rem);
+  right: clamp(0.85rem, 3.5vw, 1.75rem);
+  display: grid;
+  place-items: center;
+  padding: clamp(0.5rem, 1.6vw, 0.7rem) clamp(0.65rem, 2vw, 0.9rem);
+  background: rgb(255 255 255 / 0.93);
+  border: 1px solid rgb(255 255 255 / 0.8);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px -12px rgb(11 31 58 / 0.4);
+}
+
+@supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
+  .brand-plate {
+    background: rgb(255 255 255 / 0.82);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    backdrop-filter: blur(14px) saturate(1.1);
+  }
+}
+
+/* Width only — height follows from the intrinsic ratio, so the mark can
+   never be stretched or squashed. */
+.brand-plate img {
+  display: block;
+  width: clamp(74px, 17vw, 108px);
+  height: auto;
+}
+
+/* ------------------------------------------------------------ form panel */
+
+.stage__panel {
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+}
+
+@media (min-width: 900px) {
+  /* Desktop: the photograph fills the whole section. */
+  .stage__bg,
+  .stage__scrim {
+    inset: 0;
+    aspect-ratio: auto;
+    height: 100%;
   }
 
-  .step-two__aside {
+  .stage__bg {
+    background-image: var(--stage-bg);
+    /* Biased right so the form never sits over the table or the window. */
+    /* Trims from the left, where the panel sits, so the table, pendant,
+       window and full ceiling height all stay in frame. */
+    background-position: 68% 50%;
+  }
+
+  .stage__scrim {
+    background: linear-gradient(
+      100deg,
+      rgb(11 31 58 / 0.24) 0%,
+      rgb(11 31 58 / 0.14) 40%,
+      rgb(11 31 58 / 0.04) 66%,
+      rgb(11 31 58 / 0) 100%
+    );
+  }
+
+  .stage__inner {
     display: flex;
-    position: relative;
-    align-items: flex-end;
-    justify-content: center;
-    align-self: stretch;
-    background: var(--blue-light);
-    margin-top: calc(-1 * clamp(2rem, 6vw, 3.75rem));
-    padding: 2.5rem 1.5rem 0;
+    align-items: center;
+    min-height: min(86vh, 52rem);
+    padding-block: clamp(3rem, 6vw, 4.5rem);
   }
 
-  /* Bleed to the right edge of the window, matching the hero. */
-  .step-two__aside::after {
-    content: '';
-    position: absolute;
-    inset-block: 0;
-    left: 100%;
-    width: 100vw;
-    background: var(--blue-light);
+  .stage__panel {
+    max-width: 33rem;
+    margin-inline: 0;
   }
+}
 
-  .step-two__aside img {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 400px;
-    height: auto;
-    object-fit: contain;
+@media (min-width: 1200px) {
+  .stage__panel {
+    padding: 2.75rem;
   }
 }
 
@@ -621,7 +783,7 @@ h1.headline {
   justify-content: center;
   gap: 0.5rem;
   min-height: 56px;
-  padding: 0.75rem 0.85rem;
+  padding: 0.75rem 0.6rem;
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   background: var(--white);
@@ -630,6 +792,8 @@ h1.headline {
   font-weight: 500;
   cursor: pointer;
   text-align: center;
+  /* All three options must sit on one line — "6–12 months" is the long one. */
+  white-space: nowrap;
   transition:
     border-color 0.18s var(--ease),
     background-color 0.18s var(--ease),

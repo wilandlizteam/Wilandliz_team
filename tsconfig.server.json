@@ -1,0 +1,26 @@
+{
+  /*
+   * Type-checks the serverless functions. NOT part of `npm run build` — the
+   * host compiles these itself, and wiring them into the site build is what
+   * made a missing directory able to break a deploy.
+   *
+   * Run on demand:  npm run typecheck:server
+   */
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "types": ["node"],
+    "noEmit": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": ["api/**/*.ts", "netlify/**/*.ts"]
+}

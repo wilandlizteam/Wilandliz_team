@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { COPY, TIMELINE_OPTIONS } from '@/config';
+import { COPY, PAGE2_BACKGROUND, TIMELINE_OPTIONS } from '@/config';
 import {
   formatPhone,
   validateContact,
@@ -8,7 +8,7 @@ import {
 } from '@/lib/validation';
 import { Field } from './Field';
 import { AlertIcon, ArrowLeftIcon, CheckIcon, HomeIcon } from './Icons';
-import portrait from '@/assets/wil-and-liz.webp';
+import logo from '@/assets/logo-legacy-built.png';
 
 type Props = {
   draft: LeadDraft;
@@ -72,8 +72,32 @@ export function StepContact({
   }
 
   return (
-    <section className="shell step-two step-enter">
-      <div className="panel">
+    <section
+      className="stage step-enter"
+      style={
+        {
+          '--stage-bg': `url(${PAGE2_BACKGROUND.large})`,
+          '--stage-bg-sm': `url(${PAGE2_BACKGROUND.small})`,
+        } as React.CSSProperties
+      }
+    >
+      <div className="stage__bg" aria-hidden="true" />
+      <div className="stage__scrim" aria-hidden="true" />
+
+      {/* Sole branding on this step — the official mark, unaltered, sized by
+          width only so its proportions can never be distorted. */}
+      <div className="brand-plate">
+        <img
+          src={logo}
+          width={420}
+          height={368}
+          alt="Wil &amp; Liz — Legacy Built Team"
+          decoding="async"
+        />
+      </div>
+
+      <div className="shell stage__inner">
+        <div className="stage__panel glass">
         <button type="button" className="btn-back" onClick={onBack} disabled={submitting}>
           <ArrowLeftIcon /> Back
         </button>
@@ -233,16 +257,8 @@ export function StepContact({
             selling your home. Message and data rates may apply.
           </p>
         </form>
+        </div>
       </div>
-
-      {/*
-        Wide screens only. Carries the same portrait through from step 1 so the
-        two steps read as one experience and the visitor can see who they are
-        handing their details to. No extra copy, no extra asks.
-      */}
-      <aside className="step-two__aside" aria-hidden="true">
-        <img src={portrait} width={694} height={960} alt="" decoding="async" />
-      </aside>
     </section>
   );
 }
