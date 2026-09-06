@@ -1,33 +1,24 @@
 /**
- * Vercel serverless function — POST /api/lead
- *
- * The browser posts the lead here; this function adds the Follow Up Boss
- * credential (from an environment variable) and forwards it. The key never
- * leaves the server.
+ * Netlify Functions equivalent of api/lead.ts.
+ * Only needed if you deploy to Netlify instead of Vercel — netlify.toml
+ * redirects /api/lead to this function so the frontend is unchanged.
  */
 
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleLead, type LeadPayload } from './_lib/lead-core';
+import { handleLead, type LeadPayload } from '../../api/_lib/lead-core';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ ok: false });
+export default async function handler(request: Request): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ ok: false }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json', Allow: 'POST' },
+    });
   }
 
-  const body: LeadPayload =
-    typeof req.body === 'string' ? safeParse(req.body) : (req.body ?? {});
-
+  const body = (await request.json().catch(() => ({}))) as LeadPayload;
   const result = await handleLead(body);
 
-  res.setHeader('Cache-Control', 'no-store');
-  return res.status(result.status).json(result.body);
-}
-
-function safeParse(raw: string): LeadPayload {
-  try {
-    return JSON.parse(raw) as LeadPayload;
-  } catch {
-    return {};
-  }
+  return new Response(JSON.stringify(result.body), {
+    status: result.status,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+  });
 }
