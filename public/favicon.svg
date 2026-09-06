@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Wil and Liz Team">
+  <rect width="64" height="64" rx="10" fill="#0B1F3A"/>
+  <text x="32" y="41" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="26" font-weight="700"
+        fill="#FFFFFF" letter-spacing="0.5">W<tspan fill="#7FB0E8" font-style="italic">&amp;</tspan>L</text>
+</svg>
