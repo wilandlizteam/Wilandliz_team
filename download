@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+bundle.html
+.parcel-cache
+*.local
+
+# Secrets — never commit these
+.env
+.env.local
+.env.*.local
+
+.vercel
+.netlify
+.DS_Store
+*.log

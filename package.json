@@ -1,0 +1,34 @@
+{
+  "name": "wilandliz-seller-funnel",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "oxlint src api",
+    "typecheck": "tsc -b --noEmit",
+    "preview:file": "npm run build && node scripts/build-preview.mjs",
+    "qa": "npm run build && node qa/funnel.qa.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vercel/node": "^12.0.1",
+    "@vitejs/plugin-react": "^6.1.0",
+    "autoprefixer": "^10.5.5",
+    "oxlint": "^1.79.0",
+    "playwright": "^1.63.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "3.4.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2"
+  },
+  "description": "Wil & Liz Team \u2014 Southern California seller lead funnel"
+}
