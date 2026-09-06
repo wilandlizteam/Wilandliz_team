@@ -1,0 +1,1038 @@
+@tailwind base;
+@tailwind utilities;
+
+/* ===========================================================================
+   WIL & LIZ TEAM — SELLER FUNNEL
+   Design system. Restrained navy/blue on white; the hierarchy, spacing and
+   typography carry the premium feel, not colour or effects.
+   =========================================================================== */
+
+:root {
+  /* Brand */
+  --navy: #0b1f3a;
+  --blue: #1e5aa8;
+  --blue-deep: #17498a;
+  --blue-light: #eaf2fa;
+  --white: #ffffff;
+  --ink: #222222;
+
+  /* Derived neutrals — warm-shifted greys so the page never looks cold/generic */
+  --ink-soft: #4a5568;
+  --ink-muted: #6b7280;
+  --rule: #e3e8ef;
+  --rule-strong: #cfd8e3;
+  --danger: #a1252b;
+  --danger-bg: #fdf3f3;
+
+  --shell: min(1180px, 100%);
+  --gutter: clamp(1.25rem, 5vw, 4rem);
+
+  --font-display: 'Source Serif 4', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --radius: 6px;
+}
+
+@layer base {
+  * {
+    border-color: var(--rule);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    /* Guards against any child ever forcing sideways scroll on a phone */
+    overflow-x: hidden;
+  }
+
+  /* Visible, on-brand focus ring everywhere. Never removed. */
+  :focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* ---------------------------------------------------------------- utilities */
+
+.shell {
+  width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 100;
+  background: var(--navy);
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  transition: top 0.15s var(--ease);
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+/* ------------------------------------------------------------------ header */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background: var(--white);
+}
+
+.masthead__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 68px;
+  padding-block: 0.9rem;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  letter-spacing: 0.16em;
+  color: var(--navy);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wordmark__amp {
+  color: var(--blue);
+  font-style: italic;
+  letter-spacing: 0.06em;
+}
+
+.masthead__tagline {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+@media (max-width: 719px) {
+  .masthead__tagline {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------------------------- hero */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero > .hero__grid {
+  flex: 1;
+}
+
+/* ------------------------------------------------- hero background photo */
+
+.hero__bg,
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero__bg {
+  background-image: var(--hero-bg-sm);
+  background-size: cover;
+  background-position: 50% 58%;
+  /* Barely perceptible settle on load — no looping, no Ken Burns. */
+  animation: heroSettle 24s var(--ease) both;
+}
+
+@media (min-width: 900px) {
+  .hero__bg {
+    background-image: var(--hero-bg);
+    background-position: 62% 50%;
+  }
+}
+
+@keyframes heroSettle {
+  from {
+    transform: scale(1.05);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/*
+  White scrim for text legibility. Vertical on phones (copy sits on top),
+  horizontal on desktop (copy sits left). The photograph is never tinted —
+  only veiled with white where words have to be read over it.
+*/
+.hero__scrim {
+  background: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.97) 0%,
+    rgb(255 255 255 / 0.95) 48%,
+    rgb(255 255 255 / 0.78) 66%,
+    rgb(255 255 255 / 0.28) 88%,
+    rgb(255 255 255 / 0.12) 100%
+  );
+}
+
+@media (min-width: 900px) {
+  .hero__scrim {
+    background: linear-gradient(
+      100deg,
+      rgb(255 255 255 / 0.98) 0%,
+      rgb(255 255 255 / 0.96) 38%,
+      rgb(255 255 255 / 0.8) 52%,
+      rgb(255 255 255 / 0.34) 72%,
+      rgb(255 255 255 / 0.18) 100%
+    );
+  }
+}
+
+/* With a photo behind it, the portrait loses its blue ground and instead
+   separates from the scene with a soft shadow. */
+.hero--photo .hero__portrait-band {
+  background: transparent;
+  padding-inline: 0;
+  margin-inline: 0;
+}
+
+.hero--photo .hero__portrait-band::after {
+  display: none;
+}
+
+.hero--photo .hero__portrait img {
+  filter: drop-shadow(0 18px 30px rgb(11 31 58 / 0.28));
+}
+
+.hero__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: end;
+  padding-block: clamp(2.25rem, 6vw, 4rem) 0;
+}
+
+@media (min-width: 900px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    padding-block: clamp(2.5rem, 4vw, 3.75rem) 0;
+    align-items: stretch;
+  }
+}
+
+.hero__copy {
+  padding-bottom: clamp(1.5rem, 4vw, 3.5rem);
+  max-width: 34rem;
+}
+
+@media (min-width: 900px) {
+  .hero__copy {
+    /* Optically centred against the portrait, biased up so the CTA stays
+       comfortably above the fold on a 13" laptop. */
+    align-self: center;
+    padding-block: 0 clamp(2rem, 4vw, 3rem);
+  }
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin: 0 0 1.15rem;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 30px;
+  height: 1px;
+  background: var(--blue);
+  flex: none;
+}
+
+h1.headline {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--navy);
+  /* Tight, editorial. Never wraps mid-word; never overflows a 320px phone. */
+  font-size: clamp(2.1rem, 6.4vw, 3.65rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+  text-wrap: balance;
+}
+
+.subtitle {
+  font-size: clamp(1rem, 2.2vw, 1.1rem);
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0 0 clamp(1.6rem, 4vw, 2.1rem);
+  max-width: 30rem;
+  text-wrap: pretty;
+}
+
+/* ------------------------------------------------------------- hero photo */
+
+/*
+  The portrait always sits on its own light-blue ground, which bleeds to the
+  right edge of the viewport on desktop and runs full width on phones. Keeping
+  the photo inside the ground is what stops the panel edge from cutting across
+  the figure.
+*/
+.hero__portrait-band {
+  position: relative;
+  background: var(--blue-light);
+  padding-top: 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* Full-bleed to both screen edges on phones. */
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+}
+
+@media (min-width: 900px) {
+  .hero__portrait-band {
+    margin-inline: 0;
+  }
+}
+
+@media (min-width: 900px) {
+  .hero__portrait-band {
+    /* Pull up over the grid's top padding so the ground runs the full height
+       of the hero rather than floating as a block. */
+    margin-top: calc(-1 * clamp(2.5rem, 4vw, 3.75rem));
+    padding: 2.5rem 1.5rem 0;
+  }
+
+  /* Bleed the ground out to the right edge of the window. */
+  .hero__portrait-band::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 100%;
+    width: 100vw;
+    background: var(--blue-light);
+  }
+}
+
+.hero__portrait {
+  position: relative;
+  z-index: 1;
+  align-self: flex-end;
+  width: 100%;
+  max-width: 360px;
+}
+
+@media (min-width: 900px) {
+  .hero__portrait {
+    max-width: 430px;
+  }
+}
+
+.hero__portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* No crop, no stretch — natural proportions preserved.
+     The asset is the original photograph with only the studio backdrop
+     made transparent, so it sits on the page rather than in a box.
+     Wil and Liz themselves are untouched. */
+  object-fit: contain;
+}
+
+.hero__credit {
+  position: absolute;
+  left: 0;
+  bottom: 1.35rem;
+  background: var(--white);
+  border-left: 3px solid var(--blue);
+  padding: 0.5rem 0.95rem 0.55rem;
+  box-shadow: 0 1px 3px rgb(11 31 58 / 0.07);
+}
+
+.hero__credit-name {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1.2;
+}
+
+.hero__credit-sub {
+  font-size: 0.66rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-top: 0.15rem;
+}
+
+/* ------------------------------------------------------------------ forms */
+
+.panel {
+  max-width: 32rem;
+}
+
+.step-marker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.4rem;
+}
+
+.step-marker__bar {
+  height: 3px;
+  width: 34px;
+  border-radius: 2px;
+  background: var(--rule-strong);
+  transition: background-color 0.35s var(--ease);
+}
+.step-marker__bar[data-on='true'] {
+  background: var(--blue);
+}
+.step-marker__text {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.field + .field {
+  margin-top: 1.05rem;
+}
+
+.field__label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.field__req {
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  /* 17px keeps iOS Safari from zooming the viewport on focus */
+  font-size: 1.0625rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 0.9rem 0.95rem;
+  min-height: 52px;
+  transition:
+    border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    background-color 0.18s var(--ease);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::placeholder {
+  color: #9aa4b2;
+}
+
+.input:hover:not(:focus) {
+  border-color: #b6c2d2;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgb(30 90 168 / 0.14);
+}
+
+/* Error state carries a border shift, a background tint, an icon and text —
+   never colour alone. */
+.input[aria-invalid='true'] {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+.input[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 3px rgb(161 37 43 / 0.14);
+}
+
+.field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--danger);
+}
+
+.field__error svg {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+.grid-2 {
+  display: grid;
+  gap: 1.05rem;
+}
+/* The name pair is a grid, so the adjacent-sibling rule above doesn't reach
+   the field that follows it. Keeps the vertical rhythm even. */
+.grid-2 + .field {
+  margin-top: 1.05rem;
+}
+@media (min-width: 560px) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .grid-2 .field + .field {
+    margin-top: 0;
+  }
+}
+
+/* ----------------------------------------------------------- step 2 layout */
+
+.step-two {
+  padding-block: clamp(2rem, 6vw, 3.75rem);
+}
+
+/* The portrait only appears where there is genuinely room for it. */
+.step-two__aside {
+  display: none;
+}
+
+@media (min-width: 1060px) {
+  .step-two {
+    display: grid;
+    grid-template-columns: minmax(0, 32rem) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: end;
+    padding-bottom: 0;
+  }
+
+  .step-two__aside {
+    display: flex;
+    position: relative;
+    align-items: flex-end;
+    justify-content: center;
+    align-self: stretch;
+    background: var(--blue-light);
+    margin-top: calc(-1 * clamp(2rem, 6vw, 3.75rem));
+    padding: 2.5rem 1.5rem 0;
+  }
+
+  /* Bleed to the right edge of the window, matching the hero. */
+  .step-two__aside::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 100%;
+    width: 100vw;
+    background: var(--blue-light);
+  }
+
+  .step-two__aside img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+/* --------------------------------------------------------- timeline choice */
+
+.timeline {
+  border: 0;
+  padding: 0;
+  margin: 1.5rem 0 0;
+}
+
+.timeline__legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.65rem;
+  padding: 0;
+  line-height: 1.4;
+}
+
+.timeline__options {
+  display: grid;
+  gap: 0.6rem;
+}
+@media (min-width: 560px) {
+  .timeline__options {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 56px;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--navy);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    border-color 0.18s var(--ease),
+    background-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    transform 0.18s var(--ease);
+}
+
+.choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.choice:hover {
+  border-color: #b6c2d2;
+}
+
+.choice:has(input:focus-visible) {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Selected: border + fill + weight + a check glyph. Four signals, not just hue. */
+.choice[data-selected='true'] {
+  border-color: var(--blue);
+  background: var(--blue-light);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--blue) inset;
+  transform: translateY(-1px);
+}
+
+.choice__check {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  opacity: 0;
+  transform: scale(0.7);
+  transition:
+    opacity 0.18s var(--ease),
+    transform 0.18s var(--ease);
+  color: var(--blue);
+}
+.choice[data-selected='true'] .choice__check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.timeline[data-invalid='true'] .choice {
+  border-color: var(--danger);
+}
+
+/* ----------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 56px;
+  padding: 1rem 1.5rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--blue);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgb(11 31 58 / 0.14);
+  transition:
+    background-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    transform 0.18s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 560px) {
+  .btn {
+    width: auto;
+    min-width: 15rem;
+  }
+}
+
+@media (hover: hover) {
+  .btn:hover:not(:disabled) {
+    background: var(--blue-deep);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgb(11 31 58 / 0.16);
+  }
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  background: var(--blue-deep);
+  box-shadow: 0 1px 2px rgb(11 31 58 / 0.18);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: 0;
+  padding: 0.5rem 0;
+  margin-bottom: 0.9rem;
+  color: var(--ink-muted);
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 0.15s var(--ease);
+}
+.btn-back:hover {
+  color: var(--navy);
+}
+
+.form-footnote {
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  max-width: 30rem;
+}
+
+/* ---------------------------------------------------------- address recall */
+
+.recall {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: var(--blue-light);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.recall svg {
+  flex: none;
+  margin-top: 0.15rem;
+  color: var(--blue);
+}
+
+.recall__label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.recall__value {
+  font-size: 0.95rem;
+  color: var(--navy);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.recall__edit {
+  margin-left: auto;
+  flex: none;
+  background: none;
+  border: 0;
+  padding: 0.25rem 0.15rem;
+  color: var(--blue);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------ submit error */
+
+.submit-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem;
+  background: var(--danger-bg);
+  border: 1px solid rgb(161 37 43 / 0.28);
+  border-radius: var(--radius);
+  color: var(--danger);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.submit-error svg {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+/* ---------------------------------------------------------------- success */
+
+.success {
+  padding-block: clamp(3.5rem, 12vw, 7rem);
+  max-width: 34rem;
+}
+
+.success__mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--blue-light);
+  color: var(--blue);
+  margin-bottom: 1.5rem;
+}
+
+.success h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.85rem, 5.5vw, 2.6rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 0 0 0.85rem;
+}
+
+.success p {
+  font-size: 1.05rem;
+  line-height: 1.62;
+  color: var(--ink-soft);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.success__detail {
+  margin-top: 2rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+}
+.success__detail strong {
+  display: block;
+  color: var(--navy);
+  font-weight: 600;
+  margin-top: 0.15rem;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------ footer */
+
+.site-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-block: 2rem 2.5rem;
+  background: var(--white);
+}
+
+.site-footer__grid {
+  display: grid;
+  gap: 1.25rem;
+}
+@media (min-width: 760px) {
+  .site-footer__grid {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 3rem;
+  }
+}
+
+.site-footer__team {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+.site-footer__aff {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  margin-top: 0.25rem;
+}
+
+.site-footer__legal {
+  font-size: 0.78rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+}
+.site-footer__licenses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.site-footer__licenses span {
+  color: var(--navy);
+  font-weight: 500;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.page main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* Contains the full-bleed panels' 100vw overhang. `clip` rather than
+     `hidden` so it never becomes a scroll container and never traps focus. */
+  overflow-x: clip;
+}
+
+/* On a tall window the hero grows to meet the footer, so the background
+   photograph never leaves a white strip above it. */
+.page main > * {
+  flex: 1 0 auto;
+}
+
+/* =================================================================
+   MOTION
+   Everything below is decorative. The page is fully usable without it,
+   and it is switched off entirely for prefers-reduced-motion.
+   ================================================================= */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes riseSoft {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.62s var(--ease) both;
+}
+.rise-photo {
+  animation: riseSoft 0.8s var(--ease) both;
+}
+
+.d1 {
+  animation-delay: 0.08s;
+}
+.d2 {
+  animation-delay: 0.2s;
+}
+.d3 {
+  animation-delay: 0.34s;
+}
+.d4 {
+  animation-delay: 0.26s;
+}
+
+/* Step-to-step transition: a short fade with a slight lift. */
+.step-enter {
+  animation: rise 0.4s var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn:hover,
+  .choice[data-selected='true'] {
+    transform: none !important;
+  }
+  /* The submit spinner still needs to communicate progress. */
+  .btn__spinner {
+    animation: spin 0.9s linear infinite !important;
+  }
+}
