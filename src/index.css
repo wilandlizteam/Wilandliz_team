@@ -672,7 +672,8 @@ h1.headline {
   width: 100%;
   background-image: var(--stage-bg-sm);
   background-size: cover;
-  background-position: 50% 58%;
+  /* Leans toward the table and the window rather than the ceiling. */
+  background-position: 50% 60%;
 }
 
 .stage__scrim {
@@ -694,8 +695,9 @@ h1.headline {
 .stage__inner {
   position: relative;
   z-index: 2;
-  /* Pulls the form up so it overlaps the bottom edge of the photograph. */
-  padding-block: min(58vw, 19rem) clamp(2.5rem, 8vw, 4rem);
+  /* Pulls the form up so it just overlaps the bottom edge of the photograph —
+     a small overlap, so almost the whole room stays visible above the card. */
+  padding-block: min(68vw, 22rem) clamp(2.5rem, 8vw, 4rem);
 }
 
 /* ------------------------------------------------------------- logo plate */
@@ -750,9 +752,10 @@ h1.headline {
   .stage__bg {
     background-image: var(--stage-bg);
     /* Biased right so the form never sits over the table or the window. */
-    /* Trims from the left, where the panel sits, so the table, pendant,
-       window and full ceiling height all stay in frame. */
-    background-position: 68% 50%;
+    /* Slightly right of centre so the form panel covers the kitchen doorway
+       rather than the table, and a touch below centre so a tall viewport does
+       not fill up with ceiling. */
+    background-position: 58% 54%;
   }
 
   .stage__scrim {

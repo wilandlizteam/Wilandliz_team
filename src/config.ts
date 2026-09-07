@@ -98,11 +98,13 @@ export const HERO_BACKGROUND: { large: string; small: string } | null = {
  * ---------------------------------------------------------------------------
  * STEP 2 BACKGROUND — THE INTERIOR
  * ---------------------------------------------------------------------------
- * The dining-room photograph. Swap the same way as HERO_BACKGROUND: export at
- * 1760px and 900px wide as .webp into /public and update the paths here.
+ * The dining-room photograph. Swap the same way as HERO_BACKGROUND: export a
+ * large and a small .webp into /public and update the paths here. The current
+ * pair is 1500px and 900px square.
  *
- * Step 2 shows the room at its natural 3:2 proportions on phones, so choose a
- * landscape photograph — a portrait crop will letterbox.
+ * The layout crops with `cover`, so any reasonably square or landscape photo
+ * works: phones show a 4:3 band of it, desktop fills the section. Keep the
+ * subject near the centre — a tall portrait crop will lose most of the room.
  * ---------------------------------------------------------------------------
  */
 export const PAGE2_BACKGROUND = {
