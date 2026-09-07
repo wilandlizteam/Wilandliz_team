@@ -41,7 +41,7 @@ whole flow locally.
 | `npm run typecheck` | Frontend types only |
 | `npm run typecheck:server` | Serverless function types (not part of the build) |
 | `npm run lint` | Lint `src/` |
-| `npm run qa` | Build, then the full funnel test suite (142 assertions) |
+| `npm run qa` | Build, then the full funnel test suite (181 assertions) |
 | `node scripts/build-preview.mjs` | Single-file `preview.html` for review/email |
 
 The QA suite drives a real browser. Playwright is deliberately **not** a
@@ -190,7 +190,10 @@ Meta `Lead` event does **not** fire.
    and check it lands where you expect.
 2. Whether you want a lead flow / round-robin assignment rule for this source.
    Leads arrive with source `Facebook / Instagram Ad` (or the UTM source) and
-   tags `Seller Lead`, `Landing Page`, and `Timeline: …`.
+   tags `Home Value Lead`, `Landing Page`, and one of `Timeline: …`,
+   `Curious — not selling yet`, or `Timeline: not specified`. Those three make it
+   easy to build separate smart lists for ready-to-list sellers, future sellers,
+   and pure home-value enquiries.
 
 The retry guard in `api/_lib/lead-core.ts` is in-memory, which catches the
 realistic case — a visitor tapping again after a timeout on a warm function
@@ -203,8 +206,13 @@ Vercel KV or Upstash Redis keyed on the same `submissionId`.
 
 Almost everything an editor touches is in `src/config.ts`:
 
-- `COPY` — headline, subtitle, labels, CTAs, success message
-- `TIMELINE_OPTIONS` — the three selling-timeline choices
+- `COPY` — headline, subtitle, labels, CTAs, consent line, success message
+- `TIMELINE_OPTIONS` — the timeline choices. **The question is optional**: a
+  visitor can submit without answering. `validateContact()` in
+  `src/lib/validation.ts` and `ALLOWED_TIMELINES` in `api/_lib/lead-core.ts`
+  both have to agree, or the lead 400s. An option marked `wide: true` gets its
+  own full-width row.
+- `EHOMES_LOGO` — the ehomes mark shown in the footer's "powered by" credit
 - `DISCLAIMER` — team name, affiliation, licensees, and two empty slots for
   brokerage legal name / DRE and any extra required language
 - `META_PIXEL_ID`
@@ -248,11 +256,28 @@ unsharp-masked and given a small exposure/contrast/saturation lift — a
 presentation pass only. Nothing in the room was added, removed, moved or
 re-composed.
 
-`src/assets/logo-legacy-built.png` is the official mark, unmodified: no
-recolouring, no redrawing, no added effects. Only the flat white surround was
-made transparent so it can sit on the brand plate. It is sized by width alone in
-CSS, so it can never be stretched — the QA suite asserts the rendered aspect
-ratio matches the file's.
+`src/assets/logo-legacy-built.png` is the official Wil & Liz mark, unmodified:
+no recolouring, no redrawing, no added effects. Only the flat white surround was
+made transparent so it can sit on the brand plate. It appears beside the WIL &
+LIZ wordmark in the header and, on step 2, alone in the upper right.
+
+`src/assets/logo-ehomes.png` is the official ehomes mark exactly as supplied —
+it already shipped with a transparent background, so only the empty margin was
+trimmed. Its orange is the one deliberate exception to the navy-and-white
+palette: it is a real partner mark rather than a colour choice, so it is used
+once, small, in the footer credit.
+
+Both logos are sized by a single dimension in CSS, so neither can be stretched —
+the QA suite asserts each rendered aspect ratio matches its source file.
+
+### Tone
+
+The page is positioned as a home-value and market-analysis request, not a
+listing pitch. Step 2 asks where to send the analysis, the timeline question is
+optional and includes an explicitly not-selling answer, and the consent line is
+about real estate goals rather than selling. Step 1's headline and address
+question are still sell-oriented and were left as approved — see the note in the
+project handover if that positioning is revisited.
 
 ---
 

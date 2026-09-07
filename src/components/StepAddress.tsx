@@ -99,7 +99,9 @@ export function StepAddress({ value, onChange, onContinue }: Props) {
             />
             <div className="hero__credit">
               <div className="hero__credit-name">Wil &amp; Liz Team</div>
-              <div className="hero__credit-sub">ehomes</div>
+              <div className="hero__credit-sub">
+                <span className="ehomes">ehomes</span>
+              </div>
             </div>
           </div>
         </div>

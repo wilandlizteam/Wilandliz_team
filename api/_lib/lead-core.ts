@@ -42,7 +42,19 @@ export type CoreResult = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
-const ALLOWED_TIMELINES = new Set(['0-3 months', '3-6 months', '6-12 months']);
+/*
+ * The selling timeline is OPTIONAL — an empty value is valid. The page serves
+ * homeowners who are only curious what their home is worth, not just those
+ * ready to list. Anything outside this set is rejected so a tampered request
+ * cannot write arbitrary text into the CRM.
+ */
+const ALLOWED_TIMELINES = new Set([
+  '',
+  '0-3 months',
+  '3-6 months',
+  '6-12 months',
+  'Just curious about my home value',
+]);
 
 function str(v: unknown, max: number): string {
   return typeof v === 'string' ? v.trim().slice(0, max) : '';
@@ -101,6 +113,7 @@ export async function handleLead(raw: LeadPayload): Promise<CoreResult> {
   if (lead.phone.replace(/\D/g, '').length < 10) problems.push('phone number');
   if (!ALLOWED_TIMELINES.has(lead.timeline)) problems.push('selling timeline');
 
+
   if (problems.length) {
     return {
       status: 400,
@@ -124,14 +137,29 @@ export async function handleLead(raw: LeadPayload): Promise<CoreResult> {
     .filter(([, v]) => typeof v === 'string' && v)
     .map(([k, v]) => `${k}: ${v}`);
 
-  const tags = ['Seller Lead', 'Landing Page', `Timeline: ${lead.timeline}`];
+  /*
+   * Tagging. A blank timeline gets no timeline tag rather than an empty one,
+   * and "just curious" is tagged distinctly so the team can tell a research
+   * enquiry from a listing lead in Follow Up Boss.
+   */
+  const justCurious = lead.timeline === 'Just curious about my home value';
+  const tags = ['Home Value Lead', 'Landing Page'];
+  if (lead.timeline) {
+    tags.push(justCurious ? 'Curious — not selling yet' : `Timeline: ${lead.timeline}`);
+  } else {
+    tags.push('Timeline: not specified');
+  }
   if (process.env.FUB_ASSIGNED_TAG) tags.push(process.env.FUB_ASSIGNED_TAG);
 
   const message = [
-    `Seller lead from the Wil & Liz landing page.`,
+    `Home value request from the Wil & Liz landing page.`,
     ``,
     `Property address: ${lead.propertyAddress}`,
-    `Selling timeline: ${lead.timeline}`,
+    `Selling timeline: ${
+      justCurious
+        ? 'Not selling — curious about home value'
+        : lead.timeline || 'Not specified'
+    }`,
     ...(attributionLines.length ? ['', 'Marketing attribution:', ...attributionLines] : []),
   ].join('\n');
 

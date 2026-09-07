@@ -135,6 +135,15 @@
   padding-block: 0.9rem;
 }
 
+/*
+  The company name is always lowercase. This wins over any inherited
+  text-transform, so no style can turn it into "EHOMES".
+*/
+.ehomes {
+  text-transform: lowercase !important;
+  font-variant: none;
+}
+
 .wordmark {
   font-family: var(--font-display);
   font-weight: 600;
@@ -151,12 +160,38 @@
   letter-spacing: 0.06em;
 }
 
+.masthead__brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 0.7rem);
+  min-width: 0;
+}
+
+/* Width only, so the mark keeps its own proportions and is never stretched.
+   Sized so the "LEGACY BUILT TEAM" line under the house still reads, while the
+   header keeps its original height. */
+.masthead__logo {
+  width: clamp(44px, 11vw, 58px);
+  height: auto;
+  flex: none;
+}
+
 .masthead__tagline {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   font-size: 0.72rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--ink-muted);
   text-align: right;
+}
+
+.masthead__tagline-caps {
+  text-transform: uppercase;
+}
+
+.masthead__sep {
+  opacity: 0.5;
 }
 
 @media (max-width: 719px) {
@@ -766,6 +801,21 @@ h1.headline {
   line-height: 1.4;
 }
 
+/* Says plainly that the question can be skipped. */
+.timeline__optional {
+  display: inline-block;
+  margin-left: 0.15rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--blue-light);
+  color: var(--blue);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 0.1em;
+}
+
 .timeline__options {
   display: grid;
   gap: 0.6rem;
@@ -773,6 +823,12 @@ h1.headline {
 @media (min-width: 560px) {
   .timeline__options {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* The "just curious" option is a sentence, not a duration — it gets its own
+     full-width row rather than being squeezed into a third of one. */
+  .choice[data-wide='true'] {
+    grid-column: 1 / -1;
   }
 }
 
@@ -792,13 +848,30 @@ h1.headline {
   font-weight: 500;
   cursor: pointer;
   text-align: center;
-  /* All three options must sit on one line — "6–12 months" is the long one. */
+  /* The three duration options must each sit on one line. */
   white-space: nowrap;
   transition:
     border-color 0.18s var(--ease),
     background-color 0.18s var(--ease),
     box-shadow 0.18s var(--ease),
     transform 0.18s var(--ease);
+}
+
+.choice[data-wide='true'] {
+  white-space: normal;
+  text-align: left;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+/* The tick keeps its slot even when unselected, so selecting the option does
+   not shunt the sentence sideways. */
+.choice[data-wide='true'] .choice__check {
+  align-self: flex-start;
+  margin-top: 0.15rem;
 }
 
 .choice input {
@@ -1091,6 +1164,34 @@ h1.headline {
   font-size: 0.8rem;
   color: var(--ink-muted);
   margin-top: 0.25rem;
+}
+
+.powered-by {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
+.powered-by__label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #93a0b0;
+}
+
+.powered-by__name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+}
+
+/* Height only — the supplied artwork sets its own width, so the stacked
+   ehomes lockup keeps its proportions exactly. */
+.powered-by__logo {
+  height: 42px;
+  width: auto;
 }
 
 .site-footer__legal {
