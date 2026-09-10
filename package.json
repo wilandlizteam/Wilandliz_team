@@ -11,7 +11,8 @@
     "typecheck:server": "tsc --noEmit -p tsconfig.server.json",
     "lint": "oxlint src",
     "preview:file": "npm run build && node scripts/build-preview.mjs",
-    "qa": "npm run build && node qa/funnel.qa.mjs"
+    "qa": "npm run build && node --experimental-strip-types qa/lead-core.test.mjs && node qa/funnel.qa.mjs",
+    "test:fub": "node --experimental-strip-types qa/lead-core.test.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -29,7 +30,7 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
   },
-  "description": "Wil & Liz Team — Southern California seller lead funnel",
+  "description": "Wil & Liz Team \u2014 Southern California seller lead funnel",
   "engines": {
     "node": ">=20.0.0"
   }

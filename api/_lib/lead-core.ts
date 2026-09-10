@@ -13,16 +13,28 @@
  *   FUB_SYSTEM_KEY           X-System-Key header value   an integration with FUB)
  *   FUB_LEAD_TYPE            defaults to "Seller Inquiry"
  *   FUB_ASSIGNED_TAG         extra tag added to every person, e.g. "Seller LP"
+ *   FUB_SOURCE               lead source recorded in FUB; defaults to the
+ *                            landing page's own hostname, else the site name
  *
  * API contract used (verified against Follow Up Boss documentation):
+ *
  *   POST https://api.followupboss.com/v1/events
- *   Auth: HTTP Basic — API key as the username, empty password
- *   Success: 201 (person + event created) | 200 (existing person updated)
- *            204 (lead flow archived — FUB accepted it and chose to ignore it)
+ *     Auth: HTTP Basic — API key as the username, empty password
+ *     Success: 201 (person + event created) | 200 (existing person updated)
+ *              204 (lead flow archived — FUB accepted it and chose to ignore it)
+ *     Using /v1/events rather than /v1/people is what lets Follow Up Boss match
+ *     an existing contact instead of creating a duplicate.
+ *
+ *   POST https://api.followupboss.com/v1/notes
+ *     Body: { personId (required, int), subject, body, isHtml }
+ *     Success: 200
+ *     The note carries the timeline and the rest of the step-2 detail, so none
+ *     of it has to be crammed into the name, email or phone fields.
  * ---------------------------------------------------------------------------
  */
 
 const FUB_EVENTS_URL = 'https://api.followupboss.com/v1/events';
+const FUB_NOTES_URL = 'https://api.followupboss.com/v1/notes';
 
 export type LeadPayload = {
   submissionId?: unknown;
@@ -102,7 +114,9 @@ export async function handleLead(raw: LeadPayload): Promise<CoreResult> {
     email: str(raw.email, 200),
     phone: str(raw.phone, 40),
     timeline: str(raw.timeline, 40),
-    source: str(raw.source, 120) || 'Wil & Liz Seller Landing Page',
+    /* What the visitor's ad click said. Recorded in the note and as a tag —
+       NOT used as the FUB source, which identifies the landing page itself. */
+    adSource: str(raw.source, 120),
   };
 
   const problems: string[] = [];
@@ -138,6 +152,20 @@ export async function handleLead(raw: LeadPayload): Promise<CoreResult> {
     .map(([k, v]) => `${k}: ${v}`);
 
   /*
+   * FUB "source" identifies where the lead came from as a system — this landing
+   * page. The ad campaign that drove the click is richer than a single string,
+   * so it rides along in the note and the tags instead of overwriting this.
+   */
+  let landingHost = '';
+  try {
+    if (attribution.landingPage) landingHost = new URL(attribution.landingPage).hostname;
+  } catch {
+    /* malformed URL from the browser — fall through to the default name */
+  }
+  const source = process.env.FUB_SOURCE || landingHost || 'Wil & Liz Seller Landing Page';
+  const system = process.env.FUB_SYSTEM || 'Wil & Liz Seller Landing Page';
+
+  /*
    * Tagging. A blank timeline gets no timeline tag rather than an empty one,
    * and "just curious" is tagged distinctly so the team can tell a research
    * enquiry from a listing lead in Follow Up Boss.
@@ -149,6 +177,7 @@ export async function handleLead(raw: LeadPayload): Promise<CoreResult> {
   } else {
     tags.push('Timeline: not specified');
   }
+  if (lead.adSource) tags.push(`Source: ${lead.adSource}`);
   if (process.env.FUB_ASSIGNED_TAG) tags.push(process.env.FUB_ASSIGNED_TAG);
 
   const message = [
@@ -163,9 +192,30 @@ export async function handleLead(raw: LeadPayload): Promise<CoreResult> {
     ...(attributionLines.length ? ['', 'Marketing attribution:', ...attributionLines] : []),
   ].join('\n');
 
+  /*
+   * The note. Everything step 2 collected beyond the four contact fields lives
+   * here, spelled out, so nothing has to be squeezed into firstName, lastName,
+   * email or phone — those stay exactly what the visitor typed.
+   */
+  const noteBody = [
+    `Timeline: ${
+      justCurious
+        ? "Not selling — just curious about home value"
+        : lead.timeline || 'Not specified'
+    }`,
+    ``,
+    `Additional information:`,
+    `Property address: ${lead.propertyAddress}`,
+    `Name: ${lead.firstName} ${lead.lastName}`,
+    `Email: ${lead.email}`,
+    `Phone: ${lead.phone}`,
+    ...(lead.adSource ? ['', `Lead source: ${lead.adSource}`] : []),
+    ...(attributionLines.length ? ['', 'Marketing attribution:', ...attributionLines] : []),
+  ].join('\n');
+
   const payload = {
-    source: lead.source,
-    system: process.env.FUB_SYSTEM || undefined,
+    source,
+    system,
     type: process.env.FUB_LEAD_TYPE || 'Seller Inquiry',
     message,
     person: {
@@ -211,6 +261,18 @@ export async function handleLead(raw: LeadPayload): Promise<CoreResult> {
   // 200 updated an existing person, 201 created one, 204 means FUB accepted the
   // lead and archived it by lead-flow rules. All three are "we have it".
   if (response.status === 200 || response.status === 201 || response.status === 204) {
+    // The lead is delivered. The note is a best-effort enrichment on top of it:
+    // if it fails, the visitor has still been captured and must still be told
+    // the submission worked.
+    const personId = await readPersonId(response);
+    if (personId !== null) {
+      await attachNote(personId, headers, noteBody);
+    } else if (response.status !== 204) {
+      console.warn(
+        '[lead] Lead delivered, but no person id was found in the Follow Up Boss ' +
+          'response, so the note could not be attached.',
+      );
+    }
     return { status: 200, body: { ok: true } };
   }
 
@@ -220,4 +282,74 @@ export async function handleLead(raw: LeadPayload): Promise<CoreResult> {
   const detail = await response.text().catch(() => '');
   console.error(`[lead] Follow Up Boss rejected the lead (${response.status}): ${detail}`);
   return { status: 502, body: { ok: false } };
+}
+
+/**
+ * Pulls the person id out of an events response.
+ *
+ * Follow Up Boss documents this response only as "nearly identical to the
+ * response received from the v1/people request for the same contact", without
+ * pinning the shape, so rather than assume one path this checks the plausible
+ * ones and gives up quietly if none is present. A 204 carries no body at all.
+ */
+async function readPersonId(response: Response): Promise<number | null> {
+  if (response.status === 204) return null;
+
+  let data: unknown;
+  try {
+    data = await response.clone().json();
+  } catch {
+    return null;
+  }
+  if (!data || typeof data !== 'object') return null;
+
+  const shape = data as Record<string, unknown>;
+  const candidates: unknown[] = [
+    shape.id,
+    shape.personId,
+    (shape.person as Record<string, unknown> | undefined)?.id,
+  ];
+
+  for (const value of candidates) {
+    const n = typeof value === 'string' ? Number(value) : value;
+    if (typeof n === 'number' && Number.isInteger(n) && n > 0) return n;
+  }
+  return null;
+}
+
+/**
+ * Attaches the step-2 detail to the contact as a Follow Up Boss note.
+ *
+ * Never throws and never changes the caller's result: the lead itself has
+ * already landed, and a missing note is not worth telling the visitor their
+ * submission failed. Problems are logged for whoever is debugging.
+ */
+async function attachNote(
+  personId: number,
+  headers: Record<string, string>,
+  body: string,
+): Promise<void> {
+  try {
+    const noteResponse = await fetch(FUB_NOTES_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        personId,
+        subject: 'Seller Lead from Wil & Liz Seller Landing Page',
+        body,
+        isHtml: false,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!noteResponse.ok) {
+      const detail = await noteResponse.text().catch(() => '');
+      console.error(
+        `[lead] Lead delivered, but the note failed for person ${personId} ` +
+          `(${noteResponse.status}): ${detail}`,
+      );
+    }
+  } catch (error) {
+    console.error(`[lead] Lead delivered, but the note request threw for person ${personId}:`, error);
+  }
 }

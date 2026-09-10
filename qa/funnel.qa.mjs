@@ -118,10 +118,14 @@ for (const vp of VIEWPORTS) {
     ).length,
     glass: !!document.querySelector('.hero__copy.glass'),
   }));
-  check(`${tag} step 1 headline verbatim`, copy1.h1 === 'Sell Your Home for Top Dollar', copy1.h1);
+  check(
+    `${tag} step 1 headline verbatim`,
+    copy1.h1 === 'What Is Your Home Actually Worth Right Now?',
+    copy1.h1,
+  );
   check(
     `${tag} step 1 subtitle verbatim`,
-    copy1.sub === "With 75+ years of combined experience, we'll help you sell faster and for top dollar. ⭐",
+    copy1.sub === 'Not a Zestimate. A real number from a real local agent.',
     copy1.sub,
   );
   check(

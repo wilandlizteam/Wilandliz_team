@@ -33,9 +33,8 @@ export const BRAND = {
 
 /** Hero copy — approved wording. Do not reword without sign-off. */
 export const COPY = {
-  headline: 'Sell Your Home for Top Dollar',
-  subtitle:
-    "With 75+ years of combined experience, we'll help you sell faster and for top dollar. ⭐",
+  headline: 'What Is Your Home Actually Worth Right Now?',
+  subtitle: 'Not a Zestimate. A real number from a real local agent.',
   addressLabel: "What's the address of the home you're thinking about selling?",
   addressPlaceholder: 'Enter your property address',
   step1Cta: 'GET STARTED',

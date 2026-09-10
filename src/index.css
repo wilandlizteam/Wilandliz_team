@@ -404,8 +404,10 @@ h1.headline {
   font-family: var(--font-display);
   font-weight: 600;
   color: var(--navy);
-  /* Tight, editorial. Never wraps mid-word; never overflows a 320px phone. */
-  font-size: clamp(2.1rem, 6.4vw, 3.65rem);
+  /* Tight, editorial. Never wraps mid-word; never overflows a 320px phone.
+     Sized so the current headline holds three lines on a laptop and keeps the
+     CTA above the fold on a 320px screen. */
+  font-size: clamp(1.9rem, 5.5vw, 3.05rem);
   line-height: 1.05;
   letter-spacing: -0.02em;
   margin: 0 0 1rem;

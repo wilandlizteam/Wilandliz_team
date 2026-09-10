@@ -41,7 +41,8 @@ whole flow locally.
 | `npm run typecheck` | Frontend types only |
 | `npm run typecheck:server` | Serverless function types (not part of the build) |
 | `npm run lint` | Lint `src/` |
-| `npm run qa` | Build, then the full funnel test suite (181 assertions) |
+| `npm run qa` | Build, then both test suites |
+| `npm run test:fub` | Follow Up Boss integration tests (48 assertions, no network) |
 | `node scripts/build-preview.mjs` | Single-file `preview.html` for review/email |
 
 The QA suite drives a real browser. Playwright is deliberately **not** a
@@ -69,6 +70,7 @@ npm run qa
    | `FOLLOW_UP_BOSS_API_KEY` | your (rotated) FUB API key |
    | `FUB_LEAD_TYPE` | `Seller Inquiry` *(optional)* |
    | `FUB_ASSIGNED_TAG` | e.g. `Seller LP 2026` *(optional)* |
+   | `FUB_SOURCE` | overrides the lead source *(optional; defaults to the landing page hostname)* |
    | `FUB_SYSTEM` / `FUB_SYSTEM_KEY` | only if you register a FUB integration |
 
 4. Deploy, then point your domain at it.
@@ -175,9 +177,27 @@ POST https://api.followupboss.com/v1/events
 Authorization: Basic base64("<API key>:")     ← key as username, blank password
 ```
 
-Payload carries first name, last name, email, phone, property address, selling
-timeline (as both a tag and in the message body), and any UTM/fbclid attribution
-captured from the ad click.
+Two calls, in order:
+
+1. **`POST /v1/events`** creates or matches the contact. Using the Events API
+   rather than `POST /v1/people` is what lets Follow Up Boss recognise a person
+   who has submitted before instead of creating a duplicate.
+   - `firstName`, `lastName`, `emails[]`, `phones[]` carry only what the visitor
+     typed into those four fields.
+   - `source` identifies this landing page (its hostname, or `FUB_SOURCE`).
+   - `system` is `Wil & Liz Seller Landing Page`.
+   - `type` is `Seller Inquiry`.
+2. **`POST /v1/notes`** attaches everything else to that contact: the selling
+   timeline, the property address, the contact details as submitted, the ad
+   source, and the UTM/fbclid attribution. This is why the timeline never has to
+   be crammed into a name or phone field.
+
+The note is best-effort. The lead is already delivered by the time it is
+attempted, so a failed note is logged server-side and the visitor still sees the
+confirmation they earned. **No note is created if the lead itself failed.** If
+Follow Up Boss returns no person id, the note is skipped and logged — the person
+id is read defensively because FUB documents the events response only as "nearly
+identical to the `v1/people` response" without pinning its shape.
 
 Follow Up Boss returns `201` for a new person, `200` when it matched and updated
 an existing one, and `204` when a lead-flow rule archived it. All three count as
@@ -294,7 +314,23 @@ it communicates that something is happening.
 
 ## Test coverage
 
-`node qa/funnel.qa.mjs` builds nothing and assumes `dist/` is current. It drives
+### `npm run test:fub` — the CRM integration, 48 assertions
+
+Runs `api/_lib/lead-core.ts` directly with `fetch` replaced, so it can assert the
+exact request bodies without touching the real API or creating a single test
+lead. It covers: the four contact fields map to `firstName` / `lastName` /
+`emails` / `phones` exactly as typed; the timeline never appears in any of them;
+the event goes to `/v1/events` and never `/v1/people`; Basic auth is used and the
+key never reaches a URL; the note is attached to the person id from the event
+response, after the event, with the timeline and the rest of the step-2 detail in
+its body; **no note is created when the lead fails**; a failed note does not fail
+the lead; an absent person id is handled; the optional and "just curious"
+timelines both submit; invalid input and a missing API key fail before any
+network call; and one submission id produces exactly one event and one note.
+
+### `node qa/funnel.qa.mjs` — the funnel in a browser, 181 assertions
+
+Builds nothing and assumes `dist/` is current. It drives
 the real production build at 375px, 820px and 1440px and asserts, at each size:
 
 PageView fires · Lead does not fire early · no horizontal scroll on either step ·
