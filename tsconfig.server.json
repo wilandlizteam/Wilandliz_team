@@ -14,6 +14,15 @@
     "moduleDetection": "force",
     "types": ["node"],
     "noEmit": true,
+    /*
+     * Relative imports in api/ carry an explicit .ts extension, because
+     * package.json declares "type": "module" and Node's ESM resolver does not
+     * accept extensionless specifiers — an extensionless import made the
+     * function fail to load at runtime with ERR_MODULE_NOT_FOUND. This flag
+     * lets the type-checker accept the extension that the runtime requires.
+     * tsconfig.json (the app) already sets the same flag.
+     */
+    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "skipLibCheck": true,

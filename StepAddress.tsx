@@ -47,7 +47,9 @@ export function StepAddress({ value, onChange, onContinue }: Props) {
       )}
 
       <div className="shell hero__grid">
-        <div className="hero__copy">
+        {/* The glass card carries the copy and the form as one calm surface,
+            so the photograph behind it can stay bright and legible. */}
+        <div className="hero__copy glass rise">
           <p className="eyebrow rise">Southern California Home Sellers</p>
 
           <h1 className="headline rise d1">{COPY.headline}</h1>
@@ -97,7 +99,9 @@ export function StepAddress({ value, onChange, onContinue }: Props) {
             />
             <div className="hero__credit">
               <div className="hero__credit-name">Wil &amp; Liz Team</div>
-              <div className="hero__credit-sub">ehomes</div>
+              <div className="hero__credit-sub">
+                <span className="ehomes">ehomes</span>
+              </div>
             </div>
           </div>
         </div>

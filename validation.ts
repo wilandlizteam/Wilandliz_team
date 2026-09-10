@@ -51,7 +51,12 @@ export function validateContact(draft: LeadDraft): FieldErrors {
   if (!phoneDigits) errors.phone = 'Please enter your phone number.';
   else if (phoneDigits.length < 10) errors.phone = 'Please enter a 10-digit phone number.';
 
-  if (!draft.timeline) errors.timeline = 'Please choose a timeline.';
+  /*
+   * The selling timeline is deliberately OPTIONAL. The page has to work for a
+   * homeowner who is only curious what their home is worth, so an unanswered
+   * timeline must never block the submission. The matching server rule is in
+   * api/_lib/lead-core.ts — both sides have to agree or the lead 400s.
+   */
 
   return errors;
 }

@@ -11,8 +11,9 @@
     "typecheck:server": "tsc --noEmit -p tsconfig.server.json",
     "lint": "oxlint src",
     "preview:file": "npm run build && node scripts/build-preview.mjs",
-    "qa": "npm run build && node --experimental-strip-types qa/lead-core.test.mjs && node qa/funnel.qa.mjs",
-    "test:fub": "node --experimental-strip-types qa/lead-core.test.mjs"
+    "qa": "npm run build && node --experimental-strip-types qa/lead-core.test.mjs && node --experimental-strip-types qa/handler.e2e.mjs && node qa/funnel.qa.mjs",
+    "test:fub": "node --experimental-strip-types qa/lead-core.test.mjs",
+    "test:handler": "node --experimental-strip-types qa/handler.e2e.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

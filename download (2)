@@ -1,0 +1,6 @@
+# Kept out of the deployment upload. Note that scripts/ must NOT be listed —
+# scripts/preflight.mjs runs as the first step of the build.
+node_modules
+dist
+preview.html
+qa

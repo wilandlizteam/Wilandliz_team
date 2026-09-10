@@ -33,25 +33,43 @@ export const BRAND = {
 
 /** Hero copy — approved wording. Do not reword without sign-off. */
 export const COPY = {
-  headline: 'Sell Your Home for Top Dollar',
-  subtitle:
-    "With 75+ years of combined experience, we'll help you sell faster and for top dollar. ⭐",
+  headline: 'What Is Your Home Actually Worth Right Now?',
+  subtitle: 'Not a Zestimate. A real number from a real local agent.',
   addressLabel: "What's the address of the home you're thinking about selling?",
   addressPlaceholder: 'Enter your property address',
   step1Cta: 'GET STARTED',
-  step2Headline: "Let's Get Your Home Sold.",
-  step2Sub: 'Where should we send your home value?',
+  step2Headline: 'Where should we send your personalized market analysis?',
+  step2Sub:
+    "We'll use this information to send your personalized home value and market analysis.",
   timelineLabel: 'How soon are you looking to sell your home?',
+  /* Optional question — the visitor can submit without answering. */
+  timelineOptionalNote: 'Optional',
   step2Cta: 'GET MY HOME VALUE',
+  /* Broad, low-pressure consent line. Deliberately not about selling. */
+  consent:
+    'By submitting this form, you agree that Wil & Liz may contact you regarding your real estate goals.',
   successHeadline: "You're All Set! 🏡",
   successBody:
     'Thanks for reaching out. Wil & Liz Team will be in touch shortly to discuss your home and your selling goals.',
 } as const;
 
+/**
+ * The timeline question is OPTIONAL — see validateContact() in
+ * src/lib/validation.ts and the matching server rule in api/_lib/lead-core.ts.
+ * A visitor can submit without choosing one.
+ *
+ * `wide: true` puts an option on its own full-width row, for labels too long to
+ * sit in the three-across grid.
+ */
 export const TIMELINE_OPTIONS = [
   { value: '0-3 months', label: '0–3 months' },
   { value: '3-6 months', label: '3–6 months' },
   { value: '6-12 months', label: '6–12 months' },
+  {
+    value: 'Just curious about my home value',
+    label: "I'm not interested in selling. I'm just curious about my home value.",
+    wide: true,
+  },
 ] as const;
 
 /**
@@ -74,6 +92,42 @@ export const HERO_BACKGROUND: { large: string; small: string } | null = {
   large: '/hero-home.webp',
   small: '/hero-home-sm.webp',
 };
+
+/**
+ * ---------------------------------------------------------------------------
+ * STEP 2 BACKGROUND — THE INTERIOR
+ * ---------------------------------------------------------------------------
+ * The dining-room photograph. Swap the same way as HERO_BACKGROUND: export a
+ * large and a small .webp into /public and update the paths here. The current
+ * pair is 1500px and 900px square.
+ *
+ * The layout crops with `cover`, so any reasonably square or landscape photo
+ * works: phones show a 4:3 band of it, desktop fills the section. Keep the
+ * subject near the centre — a tall portrait crop will lose most of the room.
+ * ---------------------------------------------------------------------------
+ */
+export const PAGE2_BACKGROUND = {
+  large: '/dining-room.webp',
+  small: '/dining-room-sm.webp',
+} as const;
+
+/**
+ * ---------------------------------------------------------------------------
+ * eHOMES
+ * ---------------------------------------------------------------------------
+ * The Wil & Liz Team is powered by ehomes. The official logo is used exactly as
+ * supplied — its own colours, its own proportions, sized by height in CSS so it
+ * can never be stretched. It carries the brand's orange, which is the one
+ * deliberate exception to the navy-and-white palette: it is a real partner mark,
+ * not a decorative colour choice, so it is kept small and used once.
+ *
+ * The company name is always lowercase in text. The `.ehomes` class forces that
+ * even inside uppercased styles.
+ *
+ * Set to null to fall back to the name set in type, with no mark.
+ * ---------------------------------------------------------------------------
+ */
+export { default as EHOMES_LOGO } from '@/assets/logo-ehomes.png';
 
 /**
  * ---------------------------------------------------------------------------

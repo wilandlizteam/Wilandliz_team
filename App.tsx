@@ -79,7 +79,9 @@ export default function App() {
         Skip to form
       </a>
 
-      <Masthead />
+      {/* Step 2 replaces the masthead with the official logo, so the interior
+          photograph runs edge to edge and the branding does not double up. */}
+      {step !== 'contact' && <Masthead />}
 
       <main id="main">
         {step === 'address' && (
